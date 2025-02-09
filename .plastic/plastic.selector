@@ -1,0 +1,4 @@
+repository "miside2/SeeingMio@7971669246258@cloud"
+  path "/"
+    br "/main"
+    co "/main"
