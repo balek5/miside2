@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Playables;
+using TMPro;
 
 public class FirstPersonController : MonoBehaviour
 {
@@ -19,6 +20,19 @@ public class FirstPersonController : MonoBehaviour
     private bool isInteractingWithNPC = false;
     private PlayableDirector timelineDirector;
     public static FirstPersonController Instance;
+    public GameObject tutorialPromptPanel; // UI Panel for the tutorial prompt
+    public GameObject wasdTutorialPanel;  // UI Panel for the WASD tutorial
+    private bool isTutorialActive = false; // Flag to track if the tutorial is active
+    public bool movementEnabled = true;
+    private bool isNearPhone = false; // Track proximity to phone
+
+    // Phone Interaction
+    [Header("Phone Interaction")]
+    public TextMeshProUGUI phoneInteractionPrompt; // "Press E to Download"
+    public PhoneUI phoneUi; // Reference to the PhoneUI script
+   
+
+
 
     private void Awake()
     {
@@ -57,10 +71,28 @@ public class FirstPersonController : MonoBehaviour
         {
             interactionText.gameObject.SetActive(false);
         }
+
+        // Initialize tutorial panels
+        if (tutorialPromptPanel != null)
+        {
+            tutorialPromptPanel.SetActive(true); // Show tutorial prompt on start
+        }
+        if (wasdTutorialPanel != null)
+        {
+            wasdTutorialPanel.SetActive(false); // Hide WASD tutorial initially
+        }
+
+        // Initialize phone interaction prompt
+        if (phoneInteractionPrompt != null)
+        {
+            phoneInteractionPrompt.gameObject.SetActive(false);
+        }
     }
 
     void Update()
     {
+        if (!movementEnabled) return;
+
         HandleMouseLook();
         if (!isAwake)
         {
@@ -87,7 +119,25 @@ public class FirstPersonController : MonoBehaviour
             TogglePCInteraction();
             ToggleNPCInteraction(false);
         }
+
+        // Phone Interaction
+        if (isNearPhone && Input.GetKeyDown(KeyCode.E))
+        {
+            phoneUi.StartDownload(); // Start download
+            phoneInteractionPrompt.gameObject.SetActive(false); // Hide prompt
+        }
     }
+    // Called by PhoneTrigger script when player enters/exits phone area
+    // Add this method to handle phone proximity
+    public void SetNearPhone(bool isNear)
+    {
+        isNearPhone = isNear; // Update proximity state
+        if (phoneInteractionPrompt != null)
+        {
+            phoneInteractionPrompt.gameObject.SetActive(isNear); // Show/hide prompt
+        }
+    }
+
 
     private void WakeUp()
     {
@@ -105,7 +155,10 @@ public class FirstPersonController : MonoBehaviour
         Cursor.lockState = isInteractingWithPC ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = isInteractingWithPC;
     }
-
+    public void SetMovementEnabled(bool enabled)
+    {
+        movementEnabled = enabled;
+    }
     public void ToggleNPCInteraction(bool state)
     {
         isInteractingWithNPC = state;
@@ -201,5 +254,37 @@ public class FirstPersonController : MonoBehaviour
         {
             interactionText.gameObject.SetActive(false);
         }
+    }
+    public void OnYesClicked()
+    {
+        if (tutorialPromptPanel != null)
+        {
+            tutorialPromptPanel.SetActive(false); // Hide tutorial prompt
+        }
+        if (wasdTutorialPanel != null)
+        {
+            wasdTutorialPanel.SetActive(true); // Show WASD tutorial
+            StartCoroutine(DisableWASDPanel());
+        }
+        isTutorialActive = true;
+    }
+
+    public void OnNoClicked()
+    {
+        if (tutorialPromptPanel != null)
+        {
+            tutorialPromptPanel.SetActive(false); // Hide tutorial prompt
+        }
+        isTutorialActive = false;
+    }
+
+    private System.Collections.IEnumerator DisableWASDPanel()
+    {
+        yield return new WaitForSeconds(5f); // Display WASD tutorial for 5 seconds
+        if (wasdTutorialPanel != null)
+        {
+            wasdTutorialPanel.SetActive(false); // Hide WASD tutorial
+        }
+        isTutorialActive = false;
     }
 }

@@ -1,36 +1,105 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // For loading scenes
-using UnityEngine.UI; // For Button components
+using UnityEngine.UI;
+using TMPro;
+using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class MainMenuController : MonoBehaviour
 {
-    // Function to start the game
+    [Header("Panels")]
+    [SerializeField] private GameObject settingsPanel;
+    [SerializeField] private GameObject gameSettingsPanel;
+
+    [Header("Loading Screen")]
+    public GameObject loadingScreenPrefab; // Drag your loading screen prefab here
+    private GameObject loadingScreenCanvas; // Instantiate this in code
+    public GameObject loadingScreen;
+    public TMP_Text loadingText;
+    public Slider loadingSlider;
+    public float loadingTime = 5f; // Simulated load time
+    public string sceneToLoad = "Wakingupscene"; // Set this in the Inspector
+
+    private void Start()
+    {
+        if (settingsPanel != null) settingsPanel.SetActive(false);
+        if (gameSettingsPanel != null) gameSettingsPanel.SetActive(false);
+
+        // Instantiate the loading screen prefab and make it persist
+        if (loadingScreenPrefab != null)
+        {
+            loadingScreenCanvas = Instantiate(loadingScreenPrefab);
+            DontDestroyOnLoad(loadingScreenCanvas);
+            loadingScreen = loadingScreenCanvas.transform.Find("LoadingScreen").gameObject; // Assuming it's named "LoadingScreen" inside the prefab
+            loadingScreen.SetActive(false); // Hide it initially
+        }
+    }
+
+    // === Settings Panels ===
+    public void OpenSettings()
+    {
+        if (settingsPanel != null) settingsPanel.SetActive(true);
+    }
+
+    public void CloseSettings()
+    {
+        if (settingsPanel != null) settingsPanel.SetActive(false);
+    }
+
+    public void OpenGameSettings()
+    {
+        if (gameSettingsPanel != null) gameSettingsPanel.SetActive(true);
+        Debug.Log("Game Settings panel opened");
+    }
+
+    public void CloseGameSettings()
+    {
+        if (gameSettingsPanel != null) gameSettingsPanel.SetActive(false);
+        Debug.Log("Game Settings panel closed");
+    }
+
+    // === Start Game with Loading Screen ===
     public void StartGame()
     {
-        try
-        {
-            Debug.Log("Attempting to load scene...");
-            SceneManager.LoadScene("wakingupscene");
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError("Error loading scene: " + e.Message);
-        }
+        StartCoroutine(LoadGameWithFixedTime());
     }
-    void Update()
+
+    private IEnumerator LoadGameWithFixedTime()
     {
-        if (Input.GetKeyDown(KeyCode.L))
+        if (loadingScreen != null) loadingScreen.SetActive(true); // Show the loading screen
+
+        float elapsedTime = 0f;
+
+        while (elapsedTime < loadingTime)
         {
-            SceneManager.LoadScene("wakingupscene");
+            float progress = Mathf.Clamp01(elapsedTime / loadingTime);
+
+            if (loadingSlider != null)
+                loadingSlider.value = progress;
+
+            if (loadingText != null)
+                loadingText.text = "Loading... " + Mathf.FloorToInt(progress * 100) + "%";
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
         }
+
+        if (loadingText != null)
+            loadingText.text = "Loading Complete!";
+
+        yield return new WaitForSeconds(1f);
+
+        SceneManager.LoadScene(sceneToLoad); // Load your next scene
     }
 
-
-    // Function to quit the game
+    // === Quit the Game ===
     public void QuitGame()
     {
-        // Quit the game
-        Debug.Log("Quit Game");
+        Debug.Log("Quit Game pressed");
         Application.Quit();
+    }
+
+    private void Update()
+    {
+        // You can add menu input logic here if needed
     }
 }

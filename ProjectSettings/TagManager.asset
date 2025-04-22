@@ -13,6 +13,7 @@ TagManager:
   - Painting
   - NPC
   - Doll
+  - Phone
   layers:
   - Default
   - TransparentFX
