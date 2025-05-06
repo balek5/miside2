@@ -7,65 +7,92 @@ using System.Collections;
 public class MainMenuController : MonoBehaviour
 {
     [Header("Panels")]
-    [SerializeField] private GameObject settingsPanel;
-    [SerializeField] private GameObject gameSettingsPanel;
+    [SerializeField] private GameObject mainMenuCanvas;  // Reference to the main menu canvas
+    [SerializeField] private GameObject settingsCanvas;  // Reference to the settings canvas
+    [SerializeField] private GameObject creditsPanel;  // Panel for credits (if applicable)
 
     [Header("Loading Screen")]
-    public GameObject loadingScreenPrefab; // Drag your loading screen prefab here
-    private GameObject loadingScreenCanvas; // Instantiate this in code
+    public GameObject loadingScreenPrefab;
+    private GameObject loadingScreenCanvas;
     public GameObject loadingScreen;
     public TMP_Text loadingText;
     public Slider loadingSlider;
     public float loadingTime = 5f; // Simulated load time
-    public string sceneToLoad = "Wakingupscene"; // Set this in the Inspector
+    public string sceneToLoad = "GameScene"; // Set this in the Inspector
+
+    [Header("Game State")]
+    public bool hasSavedGame = false;
 
     private void Start()
     {
-        if (settingsPanel != null) settingsPanel.SetActive(false);
-        if (gameSettingsPanel != null) gameSettingsPanel.SetActive(false);
+        // Ensure the main menu and credits panels are hidden or active at the start
+        if (mainMenuCanvas != null) mainMenuCanvas.SetActive(true);
+        if (settingsCanvas != null) settingsCanvas.SetActive(false);
+        if (creditsPanel != null) creditsPanel.SetActive(false);
 
-        // Instantiate the loading screen prefab and make it persist
+        // Instantiate the loading screen if it's provided in the Inspector
         if (loadingScreenPrefab != null)
         {
             loadingScreenCanvas = Instantiate(loadingScreenPrefab);
             DontDestroyOnLoad(loadingScreenCanvas);
-            loadingScreen = loadingScreenCanvas.transform.Find("LoadingScreen").gameObject; // Assuming it's named "LoadingScreen" inside the prefab
-            loadingScreen.SetActive(false); // Hide it initially
+            loadingScreen = loadingScreenCanvas.transform.Find("LoadingScreen").gameObject;
+            loadingScreen.SetActive(false);
         }
     }
 
-    // === Settings Panels ===
+    // === Open and Close Panels ===
     public void OpenSettings()
     {
-        if (settingsPanel != null) settingsPanel.SetActive(true);
+        if (mainMenuCanvas != null) mainMenuCanvas.SetActive(false);  // Disable main menu canvas
+        if (settingsCanvas != null) settingsCanvas.SetActive(true);  // Enable settings canvas
     }
 
     public void CloseSettings()
     {
-        if (settingsPanel != null) settingsPanel.SetActive(false);
+        if (mainMenuCanvas != null) mainMenuCanvas.SetActive(true);   // Enable main menu canvas
+        if (settingsCanvas != null) settingsCanvas.SetActive(false);  // Disable settings canvas
     }
 
-    public void OpenGameSettings()
+    // === Open and Close Credits ===
+    public void OpenCredits()
     {
-        if (gameSettingsPanel != null) gameSettingsPanel.SetActive(true);
-        Debug.Log("Game Settings panel opened");
+        if (creditsPanel != null) creditsPanel.SetActive(true);
     }
 
-    public void CloseGameSettings()
+    public void CloseCredits()
     {
-        if (gameSettingsPanel != null) gameSettingsPanel.SetActive(false);
-        Debug.Log("Game Settings panel closed");
+        if (creditsPanel != null) creditsPanel.SetActive(false);
     }
 
-    // === Start Game with Loading Screen ===
-    public void StartGame()
+    // === Start New Game ===
+    public void StartNewGame()
     {
-        StartCoroutine(LoadGameWithFixedTime());
+        StartCoroutine(LoadGameWithFixedTime()); // Simulate loading and then load the scene
     }
 
+    // === Continue Game ===
+    public void ContinueGame()
+    {
+        if (hasSavedGame)
+        {
+            StartCoroutine(LoadGameWithFixedTime());
+        }
+        else
+        {
+            Debug.Log("No saved game to continue.");
+        }
+    }
+
+    // === Load Game from Save ===
+    public void LoadGame()
+    {
+        Debug.Log("Load game pressed");
+    }
+
+    // === Start Game Coroutine with Loading Screen ===
     private IEnumerator LoadGameWithFixedTime()
     {
-        if (loadingScreen != null) loadingScreen.SetActive(true); // Show the loading screen
+        if (loadingScreen != null) loadingScreen.SetActive(true);  // Show loading screen
 
         float elapsedTime = 0f;
 
@@ -86,9 +113,9 @@ public class MainMenuController : MonoBehaviour
         if (loadingText != null)
             loadingText.text = "Loading Complete!";
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(1f); // Wait for a second before loading the scene
 
-        SceneManager.LoadScene(sceneToLoad); // Load your next scene
+        SceneManager.LoadScene(sceneToLoad); // Load the specified scene
     }
 
     // === Quit the Game ===
