@@ -6,13 +6,13 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 0
-    path: Assets/MainMenu.unity
+    path: Assets/Scenes/MainMenu.unity
     guid: 26bba6420a1c9b046a7370a2d72e743d
   - enabled: 1
-    path: Assets/wakingupscene.unity
+    path: Assets/Scenes/wakingupscene.unity
     guid: 48da8ba659f96114e926cf6ffc026ab9
   - enabled: 1
-    path: Assets/GameSTART.unity
+    path: Assets/Scenes/GameSTART.unity
     guid: 82e93602f559ebf4c86ddcb039ce3de9
   - enabled: 1
     path: Assets/IntroScene/IntroScene.unity
@@ -21,10 +21,10 @@ EditorBuildSettings:
     path: Assets/Scenes/SampleScene.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   - enabled: 1
-    path: Assets/DesktopScene.unity
+    path: Assets/Scenes/DesktopScene.unity
     guid: fc0ff3f6afa11ab4089233e79b50ae32
   - enabled: 0
-    path: Assets/NextScene.unity
+    path: Assets/Scenes/NextScene.unity
     guid: 0b7930e53ce04cd408e8d786f9fbd977
   - enabled: 1
     path: Assets/TVController/Game !/RhytmGameScene.unity
