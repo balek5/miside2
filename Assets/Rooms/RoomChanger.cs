@@ -1,5 +1,7 @@
 using UnityEngine;
-
+using UnityEngine.AI;
+using System.Collections;
+using Unity.AI.Navigation;
 public class RoomSwapper : MonoBehaviour
 {
     public GameObject room1;
@@ -7,75 +9,84 @@ public class RoomSwapper : MonoBehaviour
     public float swapDelay = 1f;
     private bool isSwapping = false;
 
-    // Sound Effects
     public AudioClip enterSound;
     public AudioClip exitSound;
     public AudioClip swapSound;
     private AudioSource audioSource;
 
+    public NavMeshSurface navMeshSurface; // Add this in the inspector
+
     private void Start()
     {
-        // Get or add AudioSource component
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
-        {
             audioSource = gameObject.AddComponent<AudioSource>();
-        }
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Player")) return;
-        
-        // Play enter sound
+
         if (enterSound != null)
-        {
             audioSource.PlayOneShot(enterSound);
-        }
     }
 
     private void OnTriggerExit(Collider other)
     {
         if (!other.CompareTag("Player") || isSwapping) return;
-        
-        // Play exit sound
+
         if (exitSound != null)
-        {
             audioSource.PlayOneShot(exitSound);
-        }
-        
+
         StartCoroutine(SwapAfterDelay());
     }
 
-    private System.Collections.IEnumerator SwapAfterDelay()
+    private IEnumerator SwapAfterDelay()
     {
         isSwapping = true;
-
-        // Capture positions
-        Vector3 r1Pos = room1.transform.position;
-        Quaternion r1Rot = room1.transform.rotation;
-        Vector3 r3Pos = room3.transform.position;
-        Quaternion r3Rot = room3.transform.rotation;
 
         yield return new WaitForSeconds(swapDelay);
 
         // Play swap sound
         if (swapSound != null)
-        {
             audioSource.PlayOneShot(swapSound);
-        }
 
-        // Perform swap
-        Transform parent = room1.transform.parent;
+        // Save world positions and rotations
+        Vector3 room1WorldPos = room1.transform.position;
+        Quaternion room1WorldRot = room1.transform.rotation;
+
+        Vector3 room3WorldPos = room3.transform.position;
+        Quaternion room3WorldRot = room3.transform.rotation;
+
+        // Detach from parents (so SetPositionAndRotation uses world space correctly)
+        Transform room1Parent = room1.transform.parent;
+        Transform room3Parent = room3.transform.parent;
+
         room1.transform.SetParent(null, true);
         room3.transform.SetParent(null, true);
 
-        room1.transform.SetPositionAndRotation(r3Pos, r3Rot);
-        room3.transform.SetPositionAndRotation(r1Pos, r1Rot);
+        // 🔄 SWAP — Position AND Rotation
+        room1.transform.SetPositionAndRotation(room3WorldPos, room3WorldRot);
+        room3.transform.SetPositionAndRotation(room1WorldPos, room1WorldRot);
 
-        room1.transform.SetParent(parent, true);
-        room3.transform.SetParent(parent, true);
+        // Reattach
+        room1.transform.SetParent(room1Parent, true);
+        room3.transform.SetParent(room3Parent, true);
+
+    
+         room1.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+         room3.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+
+        // ✅ Rebuild NavMesh if using AI
+        if (navMeshSurface != null)
+        {
+            navMeshSurface.BuildNavMesh();
+        }
+
+        Debug.Log("After Swap — Room1 rot: " + room1.transform.rotation.eulerAngles + ", Room3 rot: " + room3.transform.rotation.eulerAngles);
 
         isSwapping = false;
     }
+
+
 }
